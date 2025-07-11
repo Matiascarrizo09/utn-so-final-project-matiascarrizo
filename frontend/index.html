@@ -10,8 +10,13 @@
     <input type="text" id="nameInput" placeholder="Escribí tu nombre" />
     <button onclick="saludar()">Saludarme</button>
     <p id="saludo"></p>
+    <h2>Agregar estudiante</h2>
+  <input type="text" id="studentName" placeholder="Nombre del estudiante" />
+  <button onclick="agregarEstudiante()">Agregar Estudiante</button>
+  <div id="resultadoAgregar"></div>
     </div>
     <h1>Lista de Estudiantes</h1>
+    <div id="listaEstudiantes"></div>
     <button id="loadButton">Cargar Estudiantes</button>
     <table id="studentsTable">
       <thead>
@@ -37,6 +42,47 @@
       console.error(error);
     }
   }
+</script>
+<script>
+  async function agregarEstudiante() {
+    const name = document.getElementById("studentName").value;
+
+    if (!name.trim()) {
+      document.getElementById("resultadoAgregar").innerText = "Por favor ingresá un nombre.";
+      return;
+    }
+
+    const response = await fetch("/api/students", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      document.getElementById("resultadoAgregar").innerText = `Estudiante agregado: ${data.name} (ID: ${data.id})`;
+
+      // actualizar tabla si tenés una
+      obtenerEstudiantes(); 
+    } else {
+      document.getElementById("resultadoAgregar").innerText = "Error al agregar estudiante.";
+    }
+  }
+
+  async function obtenerEstudiantes() {
+    const res = await fetch("/api/students");
+    const estudiantes = await res.json();
+
+    let html = "<ul>";
+    for (const e of estudiantes) {
+      html += `<li>${e.id}: ${e.name}</li>`;
+    }
+    html += "</ul>";
+    document.getElementById("listaEstudiantes").innerHTML = html;
+  }
+
+  // Llamar cuando se carga la página
+  window.onload = obtenerEstudiantes;
 </script>
   </body>
 </html>
